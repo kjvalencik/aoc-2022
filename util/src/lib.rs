@@ -1,4 +1,4 @@
-pub use std::io;
+pub use std::{io, str::FromStr};
 
 pub use anyhow::{bail, Context, Error};
 
