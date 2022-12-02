@@ -6,7 +6,7 @@ fn parse(input: &str) -> Result<Vec<u64>, Error> {
         .split("\n\n")
         .map(|elf| {
             elf.trim()
-                .split("\n")
+                .split('\n')
                 .map(|line| line.trim().parse::<u64>())
                 .try_fold(0, |acc, n| Ok(acc + n?))
         })
@@ -19,7 +19,7 @@ fn parse(input: &str) -> Result<Vec<u64>, Error> {
 }
 
 fn part_1(input: &[u64]) -> u64 {
-    input.get(0).copied().unwrap_or(0)
+    input.first().copied().unwrap_or(0)
 }
 
 fn part_2(input: &[u64]) -> u64 {
