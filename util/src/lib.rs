@@ -1,6 +1,6 @@
 pub use std::{
     cmp::{Ord, Ordering},
-    collections::{BinaryHeap, HashMap, HashSet, VecDeque},
+    collections::{hash_map::Entry, BinaryHeap, HashMap, HashSet, VecDeque},
     io, ops,
     str::FromStr,
 };
