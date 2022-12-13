@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use std::slice;
 use util::*;
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
@@ -27,21 +28,27 @@ fn parse(input: &str) -> Result<Vec<Item>, Error> {
         .collect()
 }
 
-fn compare_lists(l: &[Item], r: &[Item]) -> Ordering {
-    for (l, r) in l.iter().zip(r) {
-        match compare_pair(l, r) {
-            Ordering::Equal => {}
-            cmp => return cmp,
-        }
-    }
+impl Ord for Item {
+    fn cmp(&self, other: &Self) -> Ordering {
+        let (l, r) = match (self, other) {
+            (Item::Value(l), Item::Value(r)) => return l.cmp(r),
+            _ => (self.as_slice(), other.as_slice()),
+        };
 
-    l.len().cmp(&r.len())
+        for (l, r) in l.iter().zip(r) {
+            match l.cmp(r) {
+                Ordering::Equal => {}
+                cmp => return cmp,
+            }
+        }
+
+        l.len().cmp(&r.len())
+    }
 }
 
-fn compare_pair(l: &Item, r: &Item) -> Ordering {
-    match (l, r) {
-        (Item::Value(l), Item::Value(r)) => l.cmp(r),
-        _ => compare_lists(l.as_slice(), r.as_slice()),
+impl PartialOrd for Item {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 
@@ -49,7 +56,7 @@ fn part_1(input: &[Item]) -> usize {
     input
         .chunks_exact(2)
         .enumerate()
-        .filter(|(_, pair)| compare_pair(&pair[0], &pair[1]) == Ordering::Less)
+        .filter(|(_, pair)| pair[0] < pair[1])
         .map(|(i, _)| i + 1)
         .sum()
 }
@@ -60,7 +67,7 @@ fn part_2(mut input: Vec<Item>) -> usize {
 
     input.push(a.clone());
     input.push(b.clone());
-    input.sort_by(compare_pair);
+    input.sort();
 
     let a = input.iter().position(|i| i == &a).unwrap();
     let b = input.iter().position(|i| i == &b).unwrap();
