@@ -1,7 +1,7 @@
 pub use std::{
     cmp::{Ord, Ordering},
     collections::{hash_map::Entry, BinaryHeap, HashMap, HashSet, VecDeque},
-    io, iter, ops,
+    fmt, io, iter, ops,
     str::FromStr,
 };
 
