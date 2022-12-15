@@ -30,19 +30,10 @@ fn parse(input: &str) -> Result<Vec<Item>, Error> {
 
 impl Ord for Item {
     fn cmp(&self, other: &Self) -> Ordering {
-        let (l, r) = match (self, other) {
-            (Item::Value(l), Item::Value(r)) => return l.cmp(r),
-            _ => (self.as_slice(), other.as_slice()),
-        };
-
-        for (l, r) in l.iter().zip(r) {
-            match l.cmp(r) {
-                Ordering::Equal => {}
-                cmp => return cmp,
-            }
+        match (self, other) {
+            (Item::Value(l), Item::Value(r)) => l.cmp(r),
+            _ => self.as_slice().cmp(other.as_slice()),
         }
-
-        l.len().cmp(&r.len())
     }
 }
 
