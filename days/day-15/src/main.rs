@@ -73,21 +73,74 @@ fn part_1(y: isize, input: &Puzzle) -> usize {
     sum - beacons
 }
 
-fn part_2(input: &Puzzle) -> isize {
-    for y in 0..=4000000isize {
-        let intervals = intervals(y, input);
-        let mut prev_max = isize::MIN;
+fn contained_by(sensor: (isize, isize), d: usize, x: isize, y: isize) -> bool {
+    let dx = x.abs_diff(sensor.0);
+    let dy = y.abs_diff(sensor.1);
 
-        for i in intervals {
-            let start = *i.start();
-            let end = *i.end();
+    if dx + dy <= d {
+        return true;
+    }
 
-            if start <= end {
-                if start > prev_max && prev_max != isize::MIN {
-                    return (start - 1) * 4000000 + y;
-                }
+    false
+}
 
-                prev_max = (end + 1).max(prev_max);
+fn contained(max: isize, dist: &[((isize, isize), usize)], x: isize, y: isize) -> bool {
+    if x < 0 || y < 0 || x > max || y > max {
+        return true;
+    }
+
+    for (sensor, d) in dist {
+        if contained_by(*sensor, *d, x, y) {
+            return true;
+        }
+    }
+
+    false
+}
+
+fn part_2(max: isize, input: &Puzzle) -> isize {
+    let dist = input
+        .iter()
+        .map(|(sensor, beacon)| {
+            let dx = sensor.0.abs_diff(beacon.0);
+            let dy = sensor.1.abs_diff(beacon.1);
+            let d = dx + dy;
+
+            (*sensor, d)
+        })
+        .collect::<Vec<_>>();
+
+    for (sensor, beacon) in input {
+        let dx = sensor.0.abs_diff(beacon.0);
+        let dy = sensor.1.abs_diff(beacon.1);
+        let d = (dx + dy) as isize;
+
+        let left = sensor.0 - d - 1;
+        let right = sensor.0 + d + 1;
+        let top = sensor.1 - d - 1;
+        let bottom = sensor.1 + d + 1;
+
+        if dist.iter().any(move |&(sensor, d)| {
+            contained_by(sensor, d, left, sensor.1)
+                && contained_by(sensor, d, right, sensor.1)
+                && contained_by(sensor, d, sensor.0, top)
+                && contained_by(sensor, d, sensor.0, bottom)
+        }) {
+            continue;
+        }
+
+        for x in (sensor.0 - d - 1)..=(sensor.0 + d + 1) {
+            let dx = sensor.0.abs_diff(x) as isize;
+            let dy = d - dx;
+
+            let y = sensor.1 - dy - 1;
+            if !contained(max, &dist, x, y) {
+                return x * 4000000 + y;
+            }
+
+            let y = sensor.1 + dy + 1;
+            if !contained(max, &dist, x, y) {
+                return x * 4000000 + y;
             }
         }
     }
@@ -99,7 +152,7 @@ fn main() -> Result<(), Error> {
     let input = parse(&read_stdin()?)?;
 
     println!("Part 1: {}", part_1(2000000, &input));
-    println!("Part 2: {}", part_2(&input));
+    println!("Part 2: {}", part_2(4000000, &input));
 
     Ok(())
 }
@@ -136,7 +189,7 @@ mod test {
     fn part_2() -> Result<(), super::Error> {
         let input = super::parse(INPUT)?;
 
-        assert_eq!(super::part_2(&input), 56000011);
+        assert_eq!(super::part_2(20, &input), 56000011);
 
         Ok(())
     }
